@@ -47,6 +47,6 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    marginTop: 60, // Altura da NavBar
+    marginTop: 56, // marginTop para afastar do topo sem sobrepor a NavBar
   },
 });

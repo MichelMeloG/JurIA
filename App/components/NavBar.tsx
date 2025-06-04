@@ -10,7 +10,7 @@ interface NavBarProps {
 
 export default function NavBar({ showAuthButtons = false }: NavBarProps) {
   const { logout } = useAuth();
-  const backgroundColor = useThemeColor({}, 'background');
+  const backgroundColor = useThemeColor({ light: '#ffffff', dark: '#0f172a' }, 'background');
 
   const handleLogout = async () => {
     await logout();
@@ -58,58 +58,71 @@ export default function NavBar({ showAuthButtons = false }: NavBarProps) {
 
 const styles = StyleSheet.create({
   container: {
-    height: 60,
-    paddingHorizontal: 16,
+    height: 72,
+    paddingHorizontal: 32,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
-    backgroundColor: '#151718',
+    backgroundColor: 'rgba(21,23,24,0.92)',
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     zIndex: 1000,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    elevation: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: 'rgba(37,99,235,0.18)', // azul institucional sutil
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
   logo: {
-    width: 30,
-    height: 30,
-    marginRight: 8,
+    width: 40,
+    height: 40,
+    marginRight: 12,
   },
   title: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 22,
+    fontWeight: '800',
     color: '#ffffff',
+    letterSpacing: 1.2,
   },
   authButtons: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 12,
   },
   button: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#0a7ea4',
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 18,
+    backgroundColor: '#2563eb',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 2,
   },
   loginButton: {
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#0a7ea4',
+    borderWidth: 2,
+    borderColor: '#2563eb',
   },
   registerButton: {
-    backgroundColor: '#0a7ea4',
+    backgroundColor: '#2563eb',
   },
   logoutButton: {
-    backgroundColor: '#0a7ea4',
+    backgroundColor: '#2563eb',
   },
   buttonText: {
     color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });

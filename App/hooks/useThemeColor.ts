@@ -15,7 +15,12 @@ export function useThemeColor(
 
   if (colorFromProps) {
     return colorFromProps;
-  } else {
+  }
+  
+  try {
     return Colors[theme][colorName];
+  } catch (error) {
+    // Fallback to light theme if there's an error
+    return Colors.light[colorName];
   }
 }

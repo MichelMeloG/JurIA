@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, ScrollView, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, ScrollView, View, Dimensions, Platform } from 'react-native';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
 import { router } from 'expo-router';
@@ -95,6 +95,42 @@ export default function DocumentList({ username }: DocumentListProps) {
     });
   };
 
+  // Only apply custom scrollbar on web
+  React.useEffect(() => {
+    if (Platform.OS === 'web') {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        /* Scrollbar bonita para .juria-scrollbar */
+        .juria-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #3b82f6 #1e293b;
+        }
+        .juria-scrollbar::-webkit-scrollbar {
+          width: 14px;
+          background: #1e293b;
+          border-radius: 10px;
+        }
+        .juria-scrollbar::-webkit-scrollbar-thumb {
+          background: linear-gradient(135deg, #3b82f6 60%, #2563eb 100%);
+          border-radius: 10px;
+          border: 3px solid #1e293b;
+          box-shadow: 0 2px 12px 2px rgba(59,130,246,0.18);
+          min-height: 40px;
+          transition: background 0.3s, box-shadow 0.3s;
+        }
+        .juria-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(135deg, #2563eb 60%, #1e40af 100%);
+          box-shadow: 0 4px 16px 4px rgba(37,99,235,0.25);
+        }
+        .juria-scrollbar::-webkit-scrollbar-corner {
+          background: #1e293b;
+        }
+      `;
+      document.head.appendChild(style);
+      return () => { document.head.removeChild(style); };
+    }
+  }, []);
+
   if (error) {
     return (
       <ThemedView style={styles.container}>
@@ -117,64 +153,118 @@ export default function DocumentList({ username }: DocumentListProps) {
       {isLoading ? (
         <ThemedText style={styles.loadingText}>Carregando documentos...</ThemedText>
       ) : (
-        <ScrollView style={styles.list}>
-          {documents.map((doc, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.documentItem}
-              onPress={() => handleDocumentSelect(doc)}
+        Platform.OS === 'web' ? (
+          <div className="juria-scrollbar" style={{ height: styles.list.maxHeight, overflowY: 'auto' }}>
+            <ScrollView
+              style={{ flex: 1 }}
+              showsVerticalScrollIndicator={true}
+              contentContainerStyle={{ flexGrow: 1 }}
             >
-              <ThemedText style={styles.documentName}>{doc}</ThemedText>
-            </TouchableOpacity>
-          ))}
-          {documents.length === 0 && !error && (
-            <ThemedText style={styles.emptyMessage}>
-              Nenhum documento encontrado
-            </ThemedText>
-          )}
-        </ScrollView>
+              {documents.map((doc, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.documentItem}
+                  onPress={() => handleDocumentSelect(doc)}
+                >
+                  <ThemedText style={styles.documentName}>{doc}</ThemedText>
+                </TouchableOpacity>
+              ))}
+              {documents.length === 0 && !error && (
+                <ThemedText style={styles.emptyMessage}>
+                  Nenhum documento encontrado
+                </ThemedText>
+              )}
+            </ScrollView>
+          </div>
+        ) : (
+          <ScrollView
+            style={[styles.list]}
+            showsVerticalScrollIndicator={true}
+            contentContainerStyle={{ flexGrow: 1 }}
+          >
+            {documents.map((doc, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.documentItem}
+                onPress={() => handleDocumentSelect(doc)}
+              >
+                <ThemedText style={styles.documentName}>{doc}</ThemedText>
+              </TouchableOpacity>
+            ))}
+            {documents.length === 0 && !error && (
+              <ThemedText style={styles.emptyMessage}>
+                Nenhum documento encontrado
+              </ThemedText>
+            )}
+          </ScrollView>
+        )
       )}
     </ThemedView>
   );
 }
 
+const { width, height } = Dimensions.get('window');
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 15,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: width < 600 ? 12 : 24,
+    paddingHorizontal: width < 600 ? 8 : 18,
+    backgroundColor: 'rgba(30, 41, 59, 0.85)',
+    borderRadius: 18,
+    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.10,
+    shadowRadius: 18,
+    elevation: 8,
+    maxWidth: 900,
+    width: '100%',
+    alignSelf: 'center',
+    maxHeight: height * 0.7, // Responsivo verticalmente
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 5,
+    paddingBottom: width < 600 ? 8 : 15,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(60,60,60,0.08)',
   },
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#ffffff',
+    fontSize: width < 600 ? 18 : 24,
+    fontWeight: '800',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
   list: {
     flex: 1,
+    marginTop: width < 600 ? 6 : 12,
+    maxHeight: height * 0.6, // Responsivo verticalmente
   },
   documentItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 8,
+    backgroundColor: 'rgba(37, 99, 235, 0.08)',
+    paddingVertical: width < 600 ? 10 : 18,
+    paddingHorizontal: width < 600 ? 10 : 18,
+    borderRadius: 14,
+    marginBottom: width < 600 ? 8 : 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(37, 99, 235, 0.13)',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   documentName: {
-    fontSize: 16,
-    color: '#ffffff',
+    fontSize: 17,
+    color: '#fff',
+    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   error: {
-    color: '#ff6b6b',
+    color: '#ef4444',
     textAlign: 'center',
     fontSize: 16,
     marginBottom: 16,
@@ -192,18 +282,26 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   refreshButton: {
-    padding: 8,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: 'rgba(37, 99, 235, 0.10)',
   },
   retryButton: {
-    backgroundColor: '#0a7ea4',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 12,
+    backgroundColor: '#2563eb',
+    padding: 14,
+    borderRadius: 14,
+    marginTop: 18,
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    elevation: 2,
   },
   retryText: {
-    color: '#ffffff',
+    color: '#fff',
     textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   }
 });

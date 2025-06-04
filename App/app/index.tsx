@@ -49,28 +49,35 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#151718',
+    padding: 36,
+    backgroundColor: '#0f172a',
+    justifyContent: 'flex-start',
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 16,
+    fontSize: 34,
+    fontWeight: '800',
+    marginTop: 32, // Distância da NavBar
+    marginBottom: 10,
     textAlign: 'center',
-    color: '#ffffff',
+    color: '#2563eb',
+    letterSpacing: 1.2,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
-    marginBottom: 20,
-    color: '#ffffff',
+    marginBottom: 32,
+    color: '#cbd5e1',
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
   content: {
     flex: 1,
     width: '100%',
+    flexDirection: 'column',
+    gap: 32,
   },
   uploadSection: {
-    marginBottom: 20,
+    marginBottom: 0,
   },
   listSection: {
     flex: 1,
