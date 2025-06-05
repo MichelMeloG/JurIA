@@ -131,6 +131,21 @@ export default function DocumentList({ username }: DocumentListProps) {
     }
   }, []);
 
+  // Adiciona CSS global para body com tamanho e altura mínimos no web
+  React.useEffect(() => {
+    if (Platform.OS === 'web') {
+      const style = document.createElement('style');
+      style.innerHTML = `
+        body {
+          min-height: 100vh;
+          min-width: 320px;
+        }
+      `;
+      document.head.appendChild(style);
+      return () => { document.head.removeChild(style); };
+    }
+  }, []);
+
   if (error) {
     return (
       <ThemedView style={styles.container}>
@@ -142,11 +157,19 @@ export default function DocumentList({ username }: DocumentListProps) {
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <ThemedView
+      style={[
+        styles.container,
+        Platform.OS === 'web' ? { 
+          overflow: 'hidden' // Evita scroll horizontal
+        } : null
+      ]}
+    >
       <View style={styles.header}>
         <ThemedText style={styles.title}>Seus Documentos</ThemedText>
         <TouchableOpacity style={styles.refreshButton} onPress={fetchDocuments}>
-          <ThemedText>🔄</ThemedText>
+          <ThemedText style={styles.refreshButtonText}>↻</ThemedText>
+          <ThemedText style={styles.refreshButtonText}>Atualizar</ThemedText>
         </TouchableOpacity>
       </View>
       
@@ -154,27 +177,63 @@ export default function DocumentList({ username }: DocumentListProps) {
         <ThemedText style={styles.loadingText}>Carregando documentos...</ThemedText>
       ) : (
         Platform.OS === 'web' ? (
-          <div className="juria-scrollbar" style={{ height: styles.list.maxHeight, overflowY: 'auto' }}>
-            <ScrollView
-              style={{ flex: 1 }}
-              showsVerticalScrollIndicator={true}
-              contentContainerStyle={{ flexGrow: 1 }}
-            >
-              {documents.map((doc, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.documentItem}
-                  onPress={() => handleDocumentSelect(doc)}
-                >
-                  <ThemedText style={styles.documentName}>{doc}</ThemedText>
-                </TouchableOpacity>
-              ))}
-              {documents.length === 0 && !error && (
-                <ThemedText style={styles.emptyMessage}>
-                  Nenhum documento encontrado
-                </ThemedText>
-              )}
-            </ScrollView>
+          <div
+            className="juria-scrollbar"
+            style={{
+              height: styles.list.maxHeight + 'px',
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              marginTop: styles.list.marginTop,
+              padding: '8px 4px',
+              boxSizing: 'border-box',
+            }}
+          >
+            {documents.map((doc, index) => (
+              <div
+                key={index}
+                style={{
+                  cursor: 'pointer',
+                  marginBottom: `${width < 600 ? 10 : 14}px`,
+                  borderRadius: '16px',
+                  padding: `${width < 600 ? 14 : 18}px ${width < 600 ? 16 : 22}px`,
+                  background: 'rgba(37, 99, 235, 0.07)',
+                  border: '1px solid rgba(37, 99, 235, 0.13)',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.1)',
+                  transition: 'all 0.2s ease-in-out',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(37, 99, 235, 0.1)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(37, 99, 235, 0.07)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.1)';
+                }}
+                onClick={() => handleDocumentSelect(doc)}
+              >
+                <span style={{
+                  fontSize: `${width < 600 ? 16 : 17}px`,
+                  color: '#fff',
+                  fontWeight: '600',
+                  letterSpacing: '0.3px',
+                  display: 'block',
+                }}>{doc}</span>
+              </div>
+            ))}
+            {documents.length === 0 && !error && (
+              <div style={{
+                textAlign: 'center',
+                color: 'rgba(255, 255, 255, 0.5)',
+                fontSize: `${width < 600 ? 15 : 16}px`,
+                marginTop: '32px',
+                maxWidth: '300px',
+                margin: '32px auto 0',
+              }}>
+                Nenhum documento encontrado
+              </div>
+            )}
           </div>
         ) : (
           <ScrollView
@@ -208,100 +267,140 @@ const { width, height } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingVertical: width < 600 ? 12 : 24,
-    paddingHorizontal: width < 600 ? 8 : 18,
-    backgroundColor: 'rgba(30, 41, 59, 0.85)',
-    borderRadius: 18,
-    borderWidth: 0,
+    paddingVertical: width < 600 ? 16 : 24,
+    paddingHorizontal: width < 600 ? 12 : 24,
+    backgroundColor: 'rgba(30, 41, 59, 0.92)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.10,
-    shadowRadius: 18,
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
     elevation: 8,
-    maxWidth: 900,
+    maxWidth: 1000,
     width: '100%',
     alignSelf: 'center',
-    maxHeight: height * 0.7, // Responsivo verticalmente
-  },
-  header: {
+    maxHeight: height * 0.75, // Um pouco mais alto
+  },  header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
-    paddingBottom: width < 600 ? 8 : 15,
+    paddingBottom: width < 600 ? 0 : 10,
+    paddingHorizontal: width < 600 ? 12 : 24,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(60,60,60,0.08)',
+    borderBottomColor: 'rgba(255, 255, 255, 0.07)',
   },
   title: {
-    fontSize: width < 600 ? 18 : 24,
+    fontSize: width < 600 ? 20 : 26,
     fontWeight: '800',
     color: '#fff',
     letterSpacing: 0.5,
   },
   list: {
     flex: 1,
-    marginTop: width < 600 ? 6 : 12,
-    maxHeight: height * 0.6, // Responsivo verticalmente
+    marginTop: width < 600 ? 8 : 16,
+    maxHeight: height * 0.65,
   },
   documentItem: {
-    backgroundColor: 'rgba(37, 99, 235, 0.08)',
-    paddingVertical: width < 600 ? 10 : 18,
-    paddingHorizontal: width < 600 ? 10 : 18,
-    borderRadius: 14,
-    marginBottom: width < 600 ? 8 : 12,
+    backgroundColor: 'rgba(37, 99, 235, 0.07)',
+    paddingVertical: width < 600 ? 14 : 10,
+    paddingHorizontal: width < 600 ? 16 : 10,
+    borderRadius: 16,
+    marginBottom: width < 600 ? 10 : 10,
     borderWidth: 1,
     borderColor: 'rgba(37, 99, 235, 0.13)',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 3,
+    ...(Platform.OS === 'web' ? {
+      transition: 'all 0.2s ease-in-out',
+      cursor: 'pointer',
+      ':hover': {
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        transform: 'translateY(-2px)',
+        shadowOpacity: 0.15,
+      }
+    } : {}),
+  },
+  documentName: {
+    fontSize: width < 600 ? 16 : 17,
+    color: '#fff',
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  error: {
+    color: '#ef4444',
+    textAlign: 'center',
+    fontSize: width < 600 ? 15 : 16,
+    marginBottom: 20,
+    maxWidth: 400,
+    alignSelf: 'center',
+  },
+  emptyMessage: {
+    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: width < 600 ? 15 : 16,
+    marginTop: 32,
+    maxWidth: 300,
+    alignSelf: 'center',
+  },
+  loadingText: {
+    textAlign: 'center',
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: width < 600 ? 15 : 16,
+    marginTop: 32,
+  },
+  refreshButton: {
+    padding: width < 600 ? 10 : 12,
+    paddingHorizontal: width < 600 ? 14 : 16,
+    borderRadius: 14,
+    backgroundColor: 'rgba(37, 99, 235, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(37, 99, 235, 0.15)',
     shadowColor: '#2563eb',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    ...(Platform.OS === 'web' ? {
+      transition: 'all 0.2s ease-in-out',
+      cursor: 'pointer',
+      ':hover': {
+        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+        transform: 'translateY(-1px)',
+      }
+    } : {}),
   },
-  documentName: {
-    fontSize: 17,
+  refreshButtonText: {
+    fontSize: width < 600 ? 14 : 15,
     color: '#fff',
     fontWeight: '600',
-    letterSpacing: 0.2,
-  },
-  error: {
-    color: '#ef4444',
-    textAlign: 'center',
-    fontSize: 16,
-    marginBottom: 16,
-  },
-  emptyMessage: {
-    textAlign: 'center',
-    color: 'rgba(255, 255, 255, 0.5)',
-    fontSize: 16,
-    marginTop: 20,
-  },
-  loadingText: {
-    textAlign: 'center',
-    color: 'rgba(255, 255, 255, 0.7)',
-    fontSize: 16,
-    marginTop: 20,
-  },
-  refreshButton: {
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: 'rgba(37, 99, 235, 0.10)',
+    opacity: 0.9,
   },
   retryButton: {
     backgroundColor: '#2563eb',
-    padding: 14,
+    padding: width < 600 ? 12 : 14,
     borderRadius: 14,
-    marginTop: 18,
+    marginTop: 24,
     shadowColor: '#2563eb',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 2,
+    alignSelf: 'center',
+    minWidth: 180,
   },
   retryText: {
     color: '#fff',
     textAlign: 'center',
-    fontSize: 15,
-    fontWeight: '700',
-    letterSpacing: 0.2,
+    fontSize: width < 600 ? 14 : 15,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   }
 });
